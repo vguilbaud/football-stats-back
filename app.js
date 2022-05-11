@@ -1,8 +1,17 @@
 const express = require("express");
+require("dotenv").config();
 
 const app = express();
 
-app.use((req, res, next) => {
+app.use(express.json());
+
+app.post("/user", (req, res, next) => {
+  console.log(req.body);
+  res.status(201).json({ message: "Objet créé !" });
+  next();
+});
+
+app.get((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -15,27 +24,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/stuff", (req, res, next) => {
-  const stuff = [
-    {
-      _id: "oeihfzeoi",
-      title: "Mon premier objet",
-      description: "Les infos de mon premier objet",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      price: 4900,
-      userId: "qsomihvqios",
-    },
-    {
-      _id: "oeihfzeomoihi",
-      title: "Mon deuxième objet",
-      description: "Les infos de mon deuxième objet",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      price: 2900,
-      userId: "qsomihvqios",
-    },
-  ];
+app.use("/api/creds", (req, res, next) => {
+  const stuff = { host: process.env.API_HOST, key: process.env.API_KEY };
   res.status(200).json(stuff);
 });
 
