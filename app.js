@@ -4,6 +4,7 @@ const User = require("./models/user");
 require("dotenv").config();
 
 const leagueRoutes = require("./routes/leagues");
+const teamsRoutes = require("./routes/teams");
 
 mongoose
   .connect(
@@ -31,6 +32,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 app.use("/api/leagues", leagueRoutes);
+app.use("/api/teams", teamsRoutes);
 
 // app.post("/users", (req, res, next) => {
 //   delete req.body._id;
