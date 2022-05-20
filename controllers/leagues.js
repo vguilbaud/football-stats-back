@@ -64,3 +64,24 @@ exports.getTeamsInTheLeague = (req, res) => {
       console.log(error);
     });
 };
+
+exports.getLeaguesPlayedByTeam = (req, res) => {
+  const options = {
+    method: "GET",
+    url: `${URL}/leagues`,
+    params: { team: req.query.team, season: req.query.season },
+    headers: {
+      "X-RapidAPI-Host": process.env.API_HOST,
+      "X-RapidAPI-Key": `${process.env.API_KEY}`,
+    },
+  };
+
+  axios
+    .request(options)
+    .then((response) => {
+      res.json(response.data.response.map((daLeague) => daLeague.league));
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};

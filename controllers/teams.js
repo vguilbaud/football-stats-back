@@ -29,50 +29,26 @@ exports.getTeamInformation = (req, res) => {
 exports.getTeamStatistics = (req, res) => {
   const options = {
     method: "GET",
-    url: `${URL}/leagues`,
-    params: { team: req.params.teamId, season: req.query.season },
+    url: `${URL}/teams/statistics`,
+    params: {
+      team: req.params.teamId,
+      season: req.query.season,
+      league: req.query.league,
+    },
     headers: APIheaders,
   };
-
-  let leaguePlayedIds = [];
 
   axios
     .request(options)
     .then((response) => {
-      response.data.response.map((daLeague) => {
-        leaguePlayedIds.push(daLeague.league.id);
+      let answer = response.data.response;
+      res.json({
+        matches: answer.fixtures.played.total,
+        victories: answer.fixtures.wins.total,
+        draws: answer.fixtures.draws.total,
+        loses: answer.fixtures.loses.total,
+        goals: answer.goals.for.total.total,
       });
-    })
-    .then((response) => {
-      let total = { match: 0, goals: 0, victories: 0, draws: 0, defeats: 0 };
-
-      leaguePlayedIds.map((leagueId, i) => {
-        axios
-          .request({
-            method: "GET",
-            url: `${URL}/teams/statistics`,
-            params: {
-              team: req.params.teamId,
-              season: req.query.season,
-              league: leagueId,
-            },
-            headers: APIheaders,
-          })
-          .then((response) => {
-            total.match += response.data.response.fixtures.played.total;
-            total.goals += response.data.response.goals.for.total.total;
-            total.victories += response.data.response.fixtures.wins.total;
-            total.draws += response.data.response.fixtures.draws.total;
-            total.defeats += response.data.response.fixtures.loses.total;
-            if (i === 0) {
-              res.json(total);
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      });
-      //   res.json(leaguePlayedIds);
     })
     .catch((error) => {
       console.log(error);
