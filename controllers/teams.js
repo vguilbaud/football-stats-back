@@ -41,13 +41,13 @@ exports.getTeamStatistics = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      let answer = response.data.response;
+      let stats = response.data.response;
       res.json({
-        matches: answer.fixtures.played.total,
-        victories: answer.fixtures.wins.total,
-        draws: answer.fixtures.draws.total,
-        loses: answer.fixtures.loses.total,
-        goals: answer.goals.for.total.total,
+        matches: stats.fixtures.played.total,
+        victories: stats.fixtures.wins.total,
+        draws: stats.fixtures.draws.total,
+        loses: stats.fixtures.loses.total,
+        goals: stats.goals.for.total.total,
       });
     })
     .catch((error) => {

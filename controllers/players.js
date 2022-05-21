@@ -73,3 +73,80 @@ exports.getTeamPlayers = (req, res) => {
       console.log(error);
     });
 };
+
+exports.getPlayerStats = (req, res) => {
+  const options = {
+    method: "GET",
+    url: `${URL}/players`,
+    params: {
+      id: req.params.playerId,
+      season: req.query.season,
+    },
+    headers: APIheaders,
+  };
+
+  axios.request(options).then((response) => {
+    let infos = response.data.response[0];
+    let playerInfo = {
+      name: infos.player.name,
+      age: infos.player.age,
+      photo: infos.player.photo,
+      nationality: infos.player.nationality,
+    };
+
+    let stats = [];
+    let total = {
+      games: 0,
+      goals: 0,
+      assists: 0,
+      yellows: 0,
+      reds: 0,
+    };
+
+    stats = infos.statistics.map((daLeague) => {
+      if (daLeague.league.name.includes("Friendlies")) return;
+      if (!daLeague.games.appearences) return;
+
+      total.games += daLeague.games.appearences;
+      total.goals += daLeague.goals.total;
+      total.assists += daLeague.goals.assists;
+      total.yellows += daLeague.cards.yellow;
+      total.reds += daLeague.cards.red;
+
+      return {
+        league: {
+          id: daLeague.league.id,
+          name: daLeague.league.name,
+          logo: daLeague.league.logo,
+        },
+        statistics: {
+          games: daLeague.games.appearences,
+          goals: daLeague.goals.total,
+          assists: daLeague.goals.assists,
+          yellows: daLeague.cards.yellow,
+          reds: daLeague.cards.reds,
+        },
+      };
+    });
+    res.json({
+      playerInfo,
+      total,
+      stats,
+    });
+  });
+};
+
+exports.getPlayerTransfers = (req, res) => {
+  const options = {
+    method: "GET",
+    url: `${URL}/transfers`,
+    params: {
+      player: req.params.playerId,
+    },
+    headers: APIheaders,
+  };
+
+  axios.request(options).then((response) => {
+    res.json(response.data.response);
+  });
+};
