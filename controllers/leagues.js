@@ -37,7 +37,9 @@ exports.searchLeague = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      res.json(response.data.response);
+      res.json(
+        response.data.response.map((leagueRetrieved) => leagueRetrieved.league)
+      );
     })
     .catch((error) => {
       console.log(error);
@@ -58,7 +60,7 @@ exports.getTeamsInTheLeague = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      res.json(response.data.response);
+      res.json(response.data.response.map((resp) => resp.team));
     })
     .catch((error) => {
       console.log(error);
@@ -79,7 +81,11 @@ exports.getLeaguesPlayedByTeam = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      res.json(response.data.response.map((daLeague) => daLeague.league));
+      res.json(
+        response.data.response
+          .filter((daLeague) => !daLeague.league.name.includes("Friendlies"))
+          .map((daLeague) => daLeague.league)
+      );
     })
     .catch((error) => {
       console.log(error);

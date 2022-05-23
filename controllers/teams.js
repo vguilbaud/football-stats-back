@@ -11,7 +11,7 @@ const APIheaders = {
 exports.getTeamInformation = (req, res) => {
   const options = {
     method: "GET",
-    url: `${URL}/leagues`,
+    url: `${URL}/teams`,
     params: { id: req.params.teamId },
     headers: APIheaders,
   };
@@ -19,7 +19,7 @@ exports.getTeamInformation = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      res.json(response.data);
+      res.json(response.data.response[0]);
     })
     .catch((error) => {
       console.log(error);
