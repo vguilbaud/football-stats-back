@@ -8,69 +8,113 @@ const APIheaders = {
   "X-RapidAPI-Key": `${process.env.API_KEY}`,
 };
 
-exports.getTeamPlayers = (req, res) => {
-  const options = {
-    method: "GET",
-    url: `${URL}/players`,
-    params: {
-      team: req.query.team,
-      season: req.query.season,
-      page: req.query.page,
-    },
-    headers: APIheaders,
+exports.getTeamPlayers = async (req, res) => {
+  let totalPages = 1;
+  let pagination = 1;
+
+  let dataFormater = (arr) => {
+    return [
+      ...arr.map((playerStats) => {
+        return {
+          id: playerStats.player.id,
+          name: playerStats.player.name,
+          games: playerStats.statistics
+            .map((league) => {
+              return league.games.appearences;
+            })
+            .reduce((total, val) => {
+              return total + val;
+            }, 0),
+          goals: playerStats.statistics
+            .map((league) => {
+              return league.goals.total;
+            })
+            .reduce((total, val) => {
+              return total + val;
+            }, 0),
+          assists: playerStats.statistics
+            .map((league) => {
+              return league.goals.assists;
+            })
+            .reduce((total, val) => {
+              return total + val;
+            }, 0),
+          yellows: playerStats.statistics
+            .map((league) => {
+              return league.cards.yellow;
+            })
+            .reduce((total, val) => {
+              return total + val;
+            }, 0),
+          reds: playerStats.statistics
+            .map((league) => {
+              return league.cards.red;
+            })
+            .reduce((total, val) => {
+              return total + val;
+            }, 0),
+        };
+      }),
+    ];
   };
 
-  axios
-    .request(options)
+  let formatOptions = (pagination) => {
+    let options = {
+      method: "GET",
+      url: `${URL}/players`,
+      params: {
+        team: req.query.team,
+        season: req.query.season,
+        page: pagination.toString(),
+      },
+      headers: APIheaders,
+    };
+    return options;
+  };
+
+  await axios
+    .request(formatOptions(1))
+    .catch((err) => console.log(err))
     .then((response) => {
-      res.json({
-        page: response.data.paging.current,
-        totalPages: response.data.paging.total,
-        players: response.data.response.map((playerStats) => {
-          return {
-            id: playerStats.player.id,
-            name: playerStats.player.name,
-            games: playerStats.statistics
-              .map((league) => {
-                return league.games.appearences;
-              })
-              .reduce((total, val) => {
-                return total + val;
-              }, 0),
-            goals: playerStats.statistics
-              .map((league) => {
-                return league.goals.total;
-              })
-              .reduce((total, val) => {
-                return total + val;
-              }, 0),
-            assists: playerStats.statistics
-              .map((league) => {
-                return league.goals.assists;
-              })
-              .reduce((total, val) => {
-                return total + val;
-              }, 0),
-            yellows: playerStats.statistics
-              .map((league) => {
-                return league.cards.yellow;
-              })
-              .reduce((total, val) => {
-                return total + val;
-              }, 0),
-            reds: playerStats.statistics
-              .map((league) => {
-                return league.cards.red;
-              })
-              .reduce((total, val) => {
-                return total + val;
-              }, 0),
-          };
-        }),
-      });
+      totalPages = response.data.paging.total;
+      return dataFormater(response.data.response);
+    })
+    .then(async (response) => {
+      let players = [];
+      players.push(...response);
+      for (let i = pagination + 1; i < totalPages + 1; i++) {
+        await axios
+          .request(formatOptions(i))
+          .then((response) => {
+            return dataFormater(response.data.response);
+          })
+          .then((response) => {
+            players.push(...response);
+            return;
+          });
+      }
+      return Promise.all(
+        players.map((player, i, arr) => {
+          let duplicate = arr.find(
+            (pl, ind) => pl.id === player.id && ind !== i
+          );
+          if (duplicate) {
+            player.games += duplicate.games;
+            player.goals += duplicate.goals;
+            player.assists += duplicate.assists;
+            player.yellows += duplicate.yellows;
+            player.reds += duplicate.reds;
+            arr.splice([arr.indexOf(duplicate)], 1);
+          }
+          return player;
+        })
+      );
+    })
+    .then((response) => {
+      res.json(response);
     })
     .catch((error) => {
-      console.log(error);
+      console.log(error.message);
     });
 };
 
