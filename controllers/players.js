@@ -1,3 +1,5 @@
+const { json } = require("express");
+
 const axios = require("axios").default;
 require("dotenv").config();
 
@@ -121,63 +123,153 @@ exports.getTeamPlayers = async (req, res) => {
 exports.getPlayerStats = (req, res) => {
   const options = {
     method: "GET",
-    url: `${URL}/players`,
+    url: `${URL}/players/seasons`,
     params: {
-      id: req.params.playerId,
-      season: req.query.season,
+      player: req.params.playerId,
     },
     headers: APIheaders,
   };
 
-  axios.request(options).then((response) => {
-    let infos = response.data.response[0];
-    let playerInfo = {
-      name: infos.player.name,
-      age: infos.player.age,
-      photo: infos.player.photo,
-      nationality: infos.player.nationality,
-    };
-
-    let stats = [];
-    let total = {
-      games: 0,
-      goals: 0,
-      assists: 0,
-      yellows: 0,
-      reds: 0,
-    };
-
-    stats = infos.statistics.map((daLeague) => {
-      if (daLeague.league.name.includes("Friendlies")) return;
-      if (!daLeague.games.appearences) return;
-
-      total.games += daLeague.games.appearences;
-      total.goals += daLeague.goals.total;
-      total.assists += daLeague.goals.assists;
-      total.yellows += daLeague.cards.yellow;
-      total.reds += daLeague.cards.red;
-
-      return {
-        league: {
-          id: daLeague.league.id,
-          name: daLeague.league.name,
-          logo: daLeague.league.logo,
-        },
-        statistics: {
-          games: daLeague.games.appearences,
-          goals: daLeague.goals.total,
-          assists: daLeague.goals.assists,
-          yellows: daLeague.cards.yellow,
-          reds: daLeague.cards.reds,
-        },
+  axios
+    .request(options)
+    .then((response) => {
+      return response.data.response;
+    })
+    .then(async (resp) => {
+      let formatOptions = (year) => {
+        return {
+          method: "GET",
+          url: `${URL}/players`,
+          params: {
+            id: req.params.playerId,
+            season: year.toString(),
+          },
+          headers: APIheaders,
+        };
       };
+      let positions = [];
+      let playerInfos = {
+        name: "",
+        age: 0,
+        nationality: "",
+        photo: "",
+        position: "",
+      };
+      let total = {
+        appearences: 0,
+        goals: 0,
+        assists: 0,
+        yellows: 0,
+        reds: 0,
+      };
+      let stats = await resp.map(async (year, i) => {
+        const resp = await axios.request(formatOptions(year));
+        let infos = resp.data.response[0];
+        return {
+          year: year.toString(),
+          statsLeague: infos.statistics
+            .filter(
+              (leagueGiven) =>
+                !leagueGiven.league.name.includes("Friendlies") &&
+                leagueGiven.games.appearences > 0
+            )
+            .map((leagueGiven_1) => {
+              total.appearences += leagueGiven_1.games.appearences;
+              total.goals += leagueGiven_1.goals.total;
+              total.assists += leagueGiven_1.goals.assists;
+              total.yellows += leagueGiven_1.cards.yellow;
+              total.reds += leagueGiven_1.cards.red;
+
+              positions.push(leagueGiven_1.games.position);
+
+              if (i === 0) {
+                playerInfos.name = infos.player.name;
+                playerInfos.age = infos.player.age;
+                playerInfos.nationality = infos.player.nationality;
+                playerInfos.photo = infos.player.photo;
+              }
+
+              return {
+                league: {
+                  id: leagueGiven_1.league.id,
+                  name: leagueGiven_1.league.name,
+                  logo: leagueGiven_1.league.logo,
+                },
+                statistics: {
+                  appearences: leagueGiven_1.games.appearences,
+                  goals: leagueGiven_1.goals.total,
+                  assists: leagueGiven_1.goals.assists,
+                  yellows: leagueGiven_1.cards.yellow,
+                  reds: leagueGiven_1.cards.red,
+                },
+              };
+            }),
+        };
+      });
+      let leagueStats = await Promise.all(stats);
+      playerInfos.position = positions
+        .sort(
+          (a, b) =>
+            positions.filter((p) => p === a.length) -
+            positions.filter((p) => p === b.length)
+        )
+        .pop();
+      return { playerInfos, leagueStats, total };
+    })
+    .then((final) => {
+      res.json(final);
     });
-    res.json({
-      playerInfo,
-      total,
-      stats,
-    });
-  });
+
+  // axios.request(options).then((response) => {
+  //   console.log(response.data.response);
+  //   let infos = response.data.response[0];
+  //   let playerInfo = {
+  //     name: infos.player.name,
+  //     age: infos.player.age,
+  //     photo: infos.player.photo,
+  //     nationality: infos.player.nationality,
+  //   };
+
+  //   let stats = [];
+  //   let total = {
+  //     games: 0,
+  //     goals: 0,
+  //     assists: 0,
+  //     yellows: 0,
+  //     reds: 0,
+  //   };
+
+  //   stats = infos.statistics.map((daLeague) => {
+  //     if (daLeague.league.name.includes("Friendlies")) return;
+  //     if (!daLeague.games.appearences) return;
+
+  //     total.games += daLeague.games.appearences;
+  //     total.goals += daLeague.goals.total;
+  //     total.assists += daLeague.goals.assists;
+  //     total.yellows += daLeague.cards.yellow;
+  //     total.reds += daLeague.cards.red;
+
+  //     return {
+  //       league: {
+  //         id: daLeague.league.id,
+  //         name: daLeague.league.name,
+  //         logo: daLeague.league.logo,
+  //       },
+  //       statistics: {
+  //         games: daLeague.games.appearences,
+  //         goals: daLeague.goals.total,
+  //         assists: daLeague.goals.assists,
+  //         yellows: daLeague.cards.yellow,
+  //         reds: daLeague.cards.reds,
+  //       },
+  //     };
+  //   });
+  //   res.json({
+  //     playerInfo,
+  //     total,
+  //     stats,
+  //   });
+  // });
 };
 
 exports.getPlayerTransfers = (req, res) => {
