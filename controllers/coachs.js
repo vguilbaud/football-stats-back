@@ -19,13 +19,17 @@ exports.getCurrentCoach = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      let properCoach = response.data.response.filter((coach) => {
-        return (
-          coach.career.find((period) => {
-            return period.team.id === parseInt(req.query.team);
-          }).end === null
-        );
-      });
+      let coaches = response.data.response;
+      let properCoach =
+        coaches.length === 1
+          ? coaches
+          : coaches.filter((coach) => {
+              return (
+                coach.career.find((period) => {
+                  return period.team.id === parseInt(req.query.team);
+                }).end === null
+              );
+            });
       res.json(properCoach[0].name);
     })
     .catch((error) => {

@@ -176,7 +176,22 @@ exports.getPlayerStats = (req, res) => {
           year: year.toString(),
           statsLeague: infos.statistics
             .filter((leagueGiven) => leagueGiven.games.appearences > 0)
-            .map((leagueGiven_1) => {
+            .map((leagueGiven_1, ind, arr) => {
+              let duplicate = arr.find(
+                (leag, index) =>
+                  (leag.league.id === leagueGiven_1.league.id ||
+                    leag.league.name === leagueGiven_1.league.name) &&
+                  index !== ind
+              );
+              if (duplicate) {
+                leagueGiven_1.games.appearences += duplicate.games.appearences;
+                leagueGiven_1.goals.total += duplicate.goals.total;
+                leagueGiven_1.goals.assists += duplicate.goals.assists;
+                leagueGiven_1.cards.yellow += duplicate.cards.yellow;
+                leagueGiven_1.cards.red += duplicate.cards.red;
+                arr.splice([arr.indexOf(duplicate)], 1);
+              }
+
               totalYear.appearences += leagueGiven_1.games.appearences;
               totalYear.goals += leagueGiven_1.goals.total;
               totalYear.assists += leagueGiven_1.goals.assists;
@@ -222,7 +237,8 @@ exports.getPlayerStats = (req, res) => {
                   reds: leagueGiven_1.cards.red ? leagueGiven_1.cards.red : 0,
                 },
               };
-            }),
+            })
+            .filter((leagueGiven_2) => leagueGiven_2.league),
           totalYear: { ...totalYear },
         };
       });
@@ -234,7 +250,11 @@ exports.getPlayerStats = (req, res) => {
             positions.filter((p) => p === b.length)
         )
         .pop();
-      return { playerInfos, stats: leagueStats, total };
+      return {
+        playerInfos,
+        stats: leagueStats,
+        total,
+      };
     })
     .then((final) => {
       res.json(final);

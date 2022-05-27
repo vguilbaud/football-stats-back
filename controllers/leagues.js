@@ -46,6 +46,33 @@ exports.searchLeague = (req, res) => {
     });
 };
 
+exports.getSeasonsPlayed = (req, res) => {
+  const options = {
+    method: "GET",
+    url: `${URL}/leagues`,
+    params: { id: req.params.leagueId },
+    headers: {
+      "X-RapidAPI-Host": process.env.API_HOST,
+      "X-RapidAPI-Key": `${process.env.API_KEY}`,
+    },
+  };
+
+  axios
+    .request(options)
+    .then((response) => {
+      res.json(
+        response.data.response[0].seasons
+          .map((season) => {
+            return `${season.year.toString()} - ${(
+              season.year + 1
+            ).toString()}`;
+          })
+          .reverse()
+      );
+    })
+    .catch((error) => console.log(error));
+};
+
 exports.getTeamsInTheLeague = (req, res) => {
   const options = {
     method: "GET",

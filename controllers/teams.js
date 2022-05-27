@@ -8,6 +8,26 @@ const APIheaders = {
   "X-RapidAPI-Key": `${process.env.API_KEY}`,
 };
 
+exports.getTeamPossibleSeasons = (req, res) => {
+  const options = {
+    method: "GET",
+    url: `${URL}/teams/seasons`,
+    params: { team: req.params.teamId },
+    headers: APIheaders,
+  };
+
+  axios
+    .request(options)
+    .then((response) => {
+      res.json(
+        response.data.response
+          .map((resp) => `${resp.toString()} - ${(resp + 1).toString()}`)
+          .reverse()
+      );
+    })
+    .then((err) => console.log(err.message));
+};
+
 exports.getTeamInformation = (req, res) => {
   const options = {
     method: "GET",
@@ -22,7 +42,7 @@ exports.getTeamInformation = (req, res) => {
       res.json(response.data.response[0]);
     })
     .catch((error) => {
-      console.log(error);
+      console.log(error.message);
     });
 };
 
@@ -51,6 +71,6 @@ exports.getTeamStatistics = (req, res) => {
       });
     })
     .catch((error) => {
-      console.log(error);
+      console.log(error.message);
     });
 };
