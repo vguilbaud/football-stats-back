@@ -25,7 +25,7 @@ exports.getTeamPossibleSeasons = (req, res) => {
           .reverse()
       );
     })
-    .then((err) => console.log(err.message));
+    .then((err) => console.log(err));
 };
 
 exports.getTeamInformation = (req, res) => {

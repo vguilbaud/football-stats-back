@@ -84,6 +84,8 @@ exports.getTeamsInTheLeague = (req, res) => {
     },
   };
 
+  console.log(req.query.season);
+
   axios
     .request(options)
     .then((response) => {
@@ -115,6 +117,6 @@ exports.getLeaguesPlayedByTeam = (req, res) => {
       );
     })
     .catch((error) => {
-      console.log(error);
+      console.log(error.message);
     });
 };
