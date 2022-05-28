@@ -116,7 +116,7 @@ exports.getTeamPlayers = async (req, res) => {
       res.json(response);
     })
     .catch((error) => {
-      console.log(error.message);
+      console.log(error);
     });
 };
 
