@@ -38,7 +38,9 @@ exports.searchLeague = (req, res) => {
     .request(options)
     .then((response) => {
       res.json(
-        response.data.response.map((leagueRetrieved) => leagueRetrieved.league)
+        response.data.response
+          .slice(0, 20)
+          .map((leagueRetrieved) => leagueRetrieved.league)
       );
     })
     .catch((error) => {

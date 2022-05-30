@@ -96,20 +96,22 @@ exports.getTeamPlayers = async (req, res) => {
           });
       }
       return Promise.all(
-        players.map((player, i, arr) => {
-          let duplicate = arr.find(
-            (pl, ind) => pl.id === player.id && ind !== i
-          );
-          if (duplicate) {
-            player.games += duplicate.games;
-            player.goals += duplicate.goals;
-            player.assists += duplicate.assists;
-            player.yellows += duplicate.yellows;
-            player.reds += duplicate.reds;
-            arr.splice([arr.indexOf(duplicate)], 1);
-          }
-          return player;
-        })
+        players
+          .map((player, i, arr) => {
+            let duplicate = arr.find(
+              (pl, ind) => pl.id === player.id && ind !== i
+            );
+            if (duplicate) {
+              player.games += duplicate.games;
+              player.goals += duplicate.goals;
+              player.assists += duplicate.assists;
+              player.yellows += duplicate.yellows;
+              player.reds += duplicate.reds;
+              arr.splice([arr.indexOf(duplicate)], 1);
+            }
+            return player;
+          })
+          .filter((player) => player.id)
       );
     })
     .then((response) => {
@@ -184,11 +186,6 @@ exports.getPlayerStats = (req, res) => {
                   index !== ind
               );
               if (duplicate) {
-                leagueGiven_1.games.appearences += duplicate.games.appearences;
-                leagueGiven_1.goals.total += duplicate.goals.total;
-                leagueGiven_1.goals.assists += duplicate.goals.assists;
-                leagueGiven_1.cards.yellow += duplicate.cards.yellow;
-                leagueGiven_1.cards.red += duplicate.cards.red;
                 arr.splice([arr.indexOf(duplicate)], 1);
               }
 
