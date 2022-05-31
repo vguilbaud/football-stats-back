@@ -7,6 +7,7 @@ const leagueRoutes = require("./routes/leagues");
 const teamsRoutes = require("./routes/teams");
 const coachsRoutes = require("./routes/coachs");
 const playersRoutes = require("./routes/players");
+const userRoutes = require("./routes/user");
 
 mongoose
   .connect(
@@ -37,6 +38,7 @@ app.use("/api/leagues", leagueRoutes);
 app.use("/api/teams", teamsRoutes);
 app.use("/api/coach", coachsRoutes);
 app.use("/api/players", playersRoutes);
+app.use("/auth", userRoutes);
 
 // app.post("/users", (req, res, next) => {
 //   delete req.body._id;
