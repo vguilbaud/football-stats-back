@@ -3,7 +3,45 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../models/user");
 
+const checkEmail = (req) => {
+  let validRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+  if (!req.body.email.match(validRegex)) {
+    return { error: "Not a valid password", type: "email" };
+  }
+  return;
+};
+
+const checkPassword = (req) => {
+  if (req.body.password === "") {
+    return { error: "Please enter a password", type: "password" };
+  } else if (
+    !/^[A-Za-z0-9]*$/.test(req.body.password) ||
+    /\s/g.test(req.body.password)
+  ) {
+    return {
+      error: "Password can only contain numbers and letters",
+      type: "password",
+    };
+  } else if (req.body.password.length < 8 || req.body.password.length > 20) {
+    return {
+      error: "Password needs to be between 8 and 20 charachters",
+      type: "password",
+    };
+  }
+  return;
+};
+
 exports.signup = (req, res) => {
+  const emailError = checkEmail(req);
+  const passwordError = checkPassword(req);
+
+  if (emailError) {
+    res.status(400).json(emailError);
+  } else if (passwordError) {
+    res.status(400).json(passwordError);
+  }
+
   bcrypt
     .hash(req.body.password, 10)
     .then((hash) => {
@@ -14,9 +52,11 @@ exports.signup = (req, res) => {
       });
       user
         .save()
-        .then(() => res.status(200).json({ message: "User created!" }))
+        .then((response) => {
+          res.status(200).json(response);
+        })
         .catch((error) => {
-          if (error.errors.email.kind === "unique") {
+          if (error.errors?.email?.kind === "unique") {
             return res
               .status(400)
               .json({ error: "User already exists", type: "email" });
@@ -28,6 +68,15 @@ exports.signup = (req, res) => {
 };
 
 exports.login = (req, res) => {
+  const emailError = checkEmail(req);
+  const passwordError = checkPassword(req);
+
+  if (emailError) {
+    res.status(400).json(emailError);
+  } else if (passwordError) {
+    res.status(400).json(passwordError);
+  }
+
   User.findOne({ email: req.body.email }).then((user) => {
     if (!user) {
       return res.status(401).json({ error: "User not found!", type: "email" });
@@ -46,6 +95,7 @@ exports.login = (req, res) => {
             expiresIn: "24h",
           }),
           name: user.email.split("@")[0],
+          comments: user.comments,
         });
       })
       .catch((error) => res.status.json({ error }));

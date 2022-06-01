@@ -269,6 +269,10 @@ exports.getPlayerTransfers = (req, res) => {
   };
 
   axios.request(options).then((response) => {
-    res.json(response.data.response[0]);
+    if (response.data.response.length > 0) {
+      res.json(response.data.response[0]);
+    } else {
+      res.json([]);
+    }
   });
 };
