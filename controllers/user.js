@@ -95,7 +95,7 @@ exports.login = (req, res) => {
             expiresIn: "24h",
           }),
           name: user.email.split("@")[0],
-          comments: user.comments,
+          commentsIds: user.comments,
         });
       })
       .catch((error) => res.status.json({ error }));

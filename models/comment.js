@@ -6,6 +6,8 @@ const commentSchema = mongoose.Schema({
   type: { type: String, required: true },
   commentedId: { type: String, required: true },
   message: { type: String, required: true },
+  name: { type: String, required: true },
+  date: { type: String, required: true },
 });
 
 commentSchema.plugin(uniqueValidator);

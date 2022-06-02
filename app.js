@@ -15,7 +15,7 @@ mongoose
     `mongodb+srv://vguilbaud:${process.env.DATABASE_PASSWORD}@cluster0.xgusq.mongodb.net/footballStats?retryWrites=true&w=majority`,
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
-  .then((response) => console.log("Connexion à MongoDB réussie !"))
+  .then((response) => console.log("Connextion réussie"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
 const app = express();
