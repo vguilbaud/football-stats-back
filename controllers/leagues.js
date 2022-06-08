@@ -62,15 +62,17 @@ exports.getSeasonsPlayed = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      res.json(
-        response.data.response[0].seasons
+      res.json({
+        seasons: response.data.response[0].seasons
           .map((season) => {
             return `${season.year.toString()} - ${(
               season.year + 1
             ).toString()}`;
           })
-          .reverse()
-      );
+          .filter((season) => season !== "2022 - 2023")
+          .reverse(),
+        league: response.data.response[0].league,
+      });
     })
     .catch((error) => console.log(error));
 };
