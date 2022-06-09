@@ -20,6 +20,8 @@ exports.getTeamPlayers = async (req, res) => {
         return {
           id: playerStats.player.id,
           name: playerStats.player.name,
+          photo: playerStats.player.photo,
+          position: playerStats.statistics[0].games.position,
           games: playerStats.statistics
             .map((league) => {
               return league.games.appearences;
@@ -111,7 +113,7 @@ exports.getTeamPlayers = async (req, res) => {
             }
             return player;
           })
-          .filter((player) => player.id)
+          .filter((player) => player.id && player.goals > 0)
       );
     })
     .then((response) => {
