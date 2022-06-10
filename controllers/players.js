@@ -177,7 +177,7 @@ exports.getPlayerStats = (req, res) => {
         const resp = await axios.request(formatOptions(year));
         let infos = resp.data.response[0];
         return {
-          year: year.toString(),
+          year: `${year.toString()} - ${(year + 1).toString()}`,
           statsLeague: infos.statistics
             .filter((leagueGiven) => leagueGiven.games.appearences > 0)
             .map((leagueGiven_1, ind, arr) => {
