@@ -155,6 +155,7 @@ exports.getPlayerStats = (req, res) => {
       let playerInfos = {
         name: "",
         age: 0,
+        height: "",
         nationality: "",
         photo: "",
         position: "",
@@ -205,11 +206,12 @@ exports.getPlayerStats = (req, res) => {
 
               positions.push(leagueGiven_1.games.position);
 
-              if (i === 0) {
+              if (!playerInfos.name) {
                 playerInfos.name = infos.player.name;
                 playerInfos.age = infos.player.age;
                 playerInfos.nationality = infos.player.nationality;
                 playerInfos.photo = infos.player.photo;
+                playerInfos.height = infos.player.height.substring(0, 3);
               }
 
               return {

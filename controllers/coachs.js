@@ -30,7 +30,7 @@ exports.getCurrentCoach = (req, res) => {
                 }).end === null
               );
             });
-      res.json(properCoach[0].name);
+      res.json(properCoach[0]?.name ? properCoach[0].name : "unknown");
     })
     .catch((error) => {
       console.log(error);
