@@ -113,7 +113,7 @@ exports.getTeamPlayers = async (req, res) => {
             }
             return player;
           })
-          .filter((player) => player.id && player.goals > 0)
+          .filter((player) => player.id && player.games > 0)
       );
     })
     .then((response) => {
@@ -206,11 +206,20 @@ exports.getPlayerStats = (req, res) => {
 
               positions.push(leagueGiven_1.games.position);
 
-              if (!playerInfos.name) {
+              // Get missing information
+              if (!playerInfos.name && infos.player.name) {
                 playerInfos.name = infos.player.name;
+              }
+              if (!playerInfos.age && infos.player.age) {
                 playerInfos.age = infos.player.age;
+              }
+              if (!playerInfos.nationality && infos.player.nationality) {
                 playerInfos.nationality = infos.player.nationality;
+              }
+              if (!playerInfos.photo && infos.player.photo) {
                 playerInfos.photo = infos.player.photo;
+              }
+              if (!playerInfos.height && infos.player.height) {
                 playerInfos.height = infos.player.height.substring(0, 3);
               }
 
