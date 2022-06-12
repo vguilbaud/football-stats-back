@@ -1,5 +1,3 @@
-const { json } = require("express");
-
 const axios = require("axios").default;
 require("dotenv").config();
 
@@ -22,6 +20,7 @@ exports.getTeamPlayers = async (req, res) => {
           name: playerStats.player.name,
           photo: playerStats.player.photo,
           position: playerStats.statistics[0].games.position,
+          nationality: playerStats.player.nationality,
           games: playerStats.statistics
             .map((league) => {
               return league.games.appearences;
