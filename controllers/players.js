@@ -103,11 +103,6 @@ exports.getTeamPlayers = async (req, res) => {
               (pl, ind) => pl.id === player.id && ind !== i
             );
             if (duplicate) {
-              player.games += duplicate.games;
-              player.goals += duplicate.goals;
-              player.assists += duplicate.assists;
-              player.yellows += duplicate.yellows;
-              player.reds += duplicate.reds;
               arr.splice([arr.indexOf(duplicate)], 1);
             }
             return player;
