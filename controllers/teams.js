@@ -19,13 +19,17 @@ exports.getTeamPossibleSeasons = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      res.json(
-        response.data.response
-          .map((resp) => `${resp.toString()} - ${(resp + 1).toString()}`)
-          .reverse()
-      );
+      if (response.data.response.length === 0) {
+        res.status(404).json({ message: "Pas d'équipe trouvée avec cet id !" });
+      } else {
+        res.json(
+          response.data.response
+            .map((resp) => `${resp.toString()} - ${(resp + 1).toString()}`)
+            .reverse()
+        );
+      }
     })
-    .catch((err) => console.log(err));
+    .catch((err) => res.status(400).json({ err }));
 };
 
 exports.getTeamInformation = (req, res) => {

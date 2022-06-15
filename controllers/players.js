@@ -134,131 +134,135 @@ exports.getPlayerStats = (req, res) => {
       return response.data.response;
     })
     .then(async (resp) => {
-      let formatOptions = (year) => {
-        return {
-          method: "GET",
-          url: `${URL}/players`,
-          params: {
-            id: req.params.playerId,
-            season: year.toString(),
-          },
-          headers: APIheaders,
+      if (resp.length === 0) {
+        res.status(404).json({ message: "Pas de joueur trouvé avec cet id !" });
+      } else {
+        let formatOptions = (year) => {
+          return {
+            method: "GET",
+            url: `${URL}/players`,
+            params: {
+              id: req.params.playerId,
+              season: year.toString(),
+            },
+            headers: APIheaders,
+          };
         };
-      };
-      let positions = [];
-      let playerInfos = {
-        name: "",
-        age: 0,
-        height: "",
-        nationality: "",
-        photo: "",
-        position: "",
-      };
-      let total = {
-        appearences: 0,
-        goals: 0,
-        assists: 0,
-        yellows: 0,
-        reds: 0,
-      };
-      let stats = await resp.map(async (year, i) => {
-        let totalYear = {
+        let positions = [];
+        let playerInfos = {
+          name: "",
+          age: 0,
+          height: "",
+          nationality: "",
+          photo: "",
+          position: "",
+        };
+        let total = {
           appearences: 0,
           goals: 0,
           assists: 0,
           yellows: 0,
           reds: 0,
         };
-        const resp = await axios.request(formatOptions(year));
-        let infos = resp.data.response[0];
+        let stats = await resp.map(async (year, i) => {
+          let totalYear = {
+            appearences: 0,
+            goals: 0,
+            assists: 0,
+            yellows: 0,
+            reds: 0,
+          };
+          const resp = await axios.request(formatOptions(year));
+          let infos = resp.data.response[0];
+          return {
+            year: `${year.toString()} - ${(year + 1).toString()}`,
+            statsLeague: infos.statistics
+              .filter((leagueGiven) => leagueGiven.games.appearences > 0)
+              .map((leagueGiven_1, ind, arr) => {
+                let duplicate = arr.find(
+                  (leag, index) =>
+                    (leag.league.id === leagueGiven_1.league.id ||
+                      leag.league.name === leagueGiven_1.league.name) &&
+                    index !== ind
+                );
+                if (duplicate) {
+                  arr.splice([arr.indexOf(duplicate)], 1);
+                }
+
+                totalYear.appearences += leagueGiven_1.games.appearences;
+                totalYear.goals += leagueGiven_1.goals.total;
+                totalYear.assists += leagueGiven_1.goals.assists;
+                totalYear.yellows += leagueGiven_1.cards.yellow;
+                totalYear.reds += leagueGiven_1.cards.red;
+
+                total.appearences += leagueGiven_1.games.appearences;
+                total.goals += leagueGiven_1.goals.total;
+                total.assists += leagueGiven_1.goals.assists;
+                total.yellows += leagueGiven_1.cards.yellow;
+                total.reds += leagueGiven_1.cards.red;
+
+                positions.push(leagueGiven_1.games.position);
+
+                // Get missing information
+                if (!playerInfos.name && infos.player.name) {
+                  playerInfos.name = infos.player.name;
+                }
+                if (!playerInfos.age && infos.player.age) {
+                  playerInfos.age = infos.player.age;
+                }
+                if (!playerInfos.nationality && infos.player.nationality) {
+                  playerInfos.nationality = infos.player.nationality;
+                }
+                if (!playerInfos.photo && infos.player.photo) {
+                  playerInfos.photo = infos.player.photo;
+                }
+                if (!playerInfos.height && infos.player.height) {
+                  playerInfos.height = infos.player.height.substring(0, 3);
+                }
+
+                return {
+                  league: {
+                    id: leagueGiven_1.league.id,
+                    name: leagueGiven_1.league.name,
+                    logo: leagueGiven_1.league.logo
+                      ? leagueGiven_1.league.logo
+                      : "",
+                  },
+                  statistics: {
+                    appearences: leagueGiven_1.games.appearences
+                      ? leagueGiven_1.games.appearences
+                      : 0,
+                    goals: leagueGiven_1.goals.total
+                      ? leagueGiven_1.goals.total
+                      : 0,
+                    assists: leagueGiven_1.goals.assists
+                      ? leagueGiven_1.goals.assists
+                      : 0,
+                    yellows: leagueGiven_1.cards.yellow
+                      ? leagueGiven_1.cards.yellow
+                      : 0,
+                    reds: leagueGiven_1.cards.red ? leagueGiven_1.cards.red : 0,
+                  },
+                };
+              })
+              .filter((leagueGiven_2) => leagueGiven_2.league),
+            totalYear: { ...totalYear },
+          };
+        });
+        let leagueStats = await Promise.all(stats);
+        playerInfos.position = positions
+          .sort(
+            (a, b) =>
+              positions.filter((p) => p === a.length) -
+              positions.filter((p) => p === b.length)
+          )
+          .pop();
         return {
-          year: `${year.toString()} - ${(year + 1).toString()}`,
-          statsLeague: infos.statistics
-            .filter((leagueGiven) => leagueGiven.games.appearences > 0)
-            .map((leagueGiven_1, ind, arr) => {
-              let duplicate = arr.find(
-                (leag, index) =>
-                  (leag.league.id === leagueGiven_1.league.id ||
-                    leag.league.name === leagueGiven_1.league.name) &&
-                  index !== ind
-              );
-              if (duplicate) {
-                arr.splice([arr.indexOf(duplicate)], 1);
-              }
-
-              totalYear.appearences += leagueGiven_1.games.appearences;
-              totalYear.goals += leagueGiven_1.goals.total;
-              totalYear.assists += leagueGiven_1.goals.assists;
-              totalYear.yellows += leagueGiven_1.cards.yellow;
-              totalYear.reds += leagueGiven_1.cards.red;
-
-              total.appearences += leagueGiven_1.games.appearences;
-              total.goals += leagueGiven_1.goals.total;
-              total.assists += leagueGiven_1.goals.assists;
-              total.yellows += leagueGiven_1.cards.yellow;
-              total.reds += leagueGiven_1.cards.red;
-
-              positions.push(leagueGiven_1.games.position);
-
-              // Get missing information
-              if (!playerInfos.name && infos.player.name) {
-                playerInfos.name = infos.player.name;
-              }
-              if (!playerInfos.age && infos.player.age) {
-                playerInfos.age = infos.player.age;
-              }
-              if (!playerInfos.nationality && infos.player.nationality) {
-                playerInfos.nationality = infos.player.nationality;
-              }
-              if (!playerInfos.photo && infos.player.photo) {
-                playerInfos.photo = infos.player.photo;
-              }
-              if (!playerInfos.height && infos.player.height) {
-                playerInfos.height = infos.player.height.substring(0, 3);
-              }
-
-              return {
-                league: {
-                  id: leagueGiven_1.league.id,
-                  name: leagueGiven_1.league.name,
-                  logo: leagueGiven_1.league.logo
-                    ? leagueGiven_1.league.logo
-                    : "",
-                },
-                statistics: {
-                  appearences: leagueGiven_1.games.appearences
-                    ? leagueGiven_1.games.appearences
-                    : 0,
-                  goals: leagueGiven_1.goals.total
-                    ? leagueGiven_1.goals.total
-                    : 0,
-                  assists: leagueGiven_1.goals.assists
-                    ? leagueGiven_1.goals.assists
-                    : 0,
-                  yellows: leagueGiven_1.cards.yellow
-                    ? leagueGiven_1.cards.yellow
-                    : 0,
-                  reds: leagueGiven_1.cards.red ? leagueGiven_1.cards.red : 0,
-                },
-              };
-            })
-            .filter((leagueGiven_2) => leagueGiven_2.league),
-          totalYear: { ...totalYear },
+          playerInfos,
+          stats: leagueStats,
+          total,
         };
-      });
-      let leagueStats = await Promise.all(stats);
-      playerInfos.position = positions
-        .sort(
-          (a, b) =>
-            positions.filter((p) => p === a.length) -
-            positions.filter((p) => p === b.length)
-        )
-        .pop();
-      return {
-        playerInfos,
-        stats: leagueStats,
-        total,
-      };
+      }
     })
     .then((final) => {
       res.json(final);

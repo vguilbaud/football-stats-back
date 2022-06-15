@@ -62,19 +62,23 @@ exports.getSeasonsPlayed = (req, res) => {
   axios
     .request(options)
     .then((response) => {
-      res.json({
-        seasons: response.data.response[0].seasons
-          .map((season) => {
-            return `${season.year.toString()} - ${(
-              season.year + 1
-            ).toString()}`;
-          })
-          .filter((season) => season !== "2022 - 2023")
-          .reverse(),
-        league: response.data.response[0].league,
-      });
+      if (response.data.response.length === 0) {
+        res.status(404).json({ message: "Pas de ligues avec cet id" });
+      } else {
+        res.json({
+          seasons: response.data.response[0].seasons
+            .map((season) => {
+              return `${season.year.toString()} - ${(
+                season.year + 1
+              ).toString()}`;
+            })
+            .filter((season) => season !== "2022 - 2023")
+            .reverse(),
+          league: response.data.response[0].league,
+        });
+      }
     })
-    .catch((error) => console.log(error));
+    .catch((error) => res.status(400).json({ error }));
 };
 
 exports.getTeamsInTheLeague = (req, res) => {
